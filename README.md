@@ -7,6 +7,18 @@ L'obiettivo principale è duplice:
 1.  **Mantenere l'uso degli interruttori fisici** esistenti per un controllo intuitivo.
 2.  **Garantire il funzionamento "di emergenza"**: se il Bridge Hue o la rete Wi-Fi non sono disponibili, l'interruttore torna a funzionare come un interruttore tradizionale, tagliando o ripristinando la corrente.
 
+## Origine del Progetto e Miglioramenti Chiave
+
+Questo progetto è un'evoluzione basata sull'ottimo lavoro di **laurentbroering** e il suo repository [shelly_hue](https://github.com/laurentbroering/shelly_hue).
+
+L'idea iniziale era molto simile, ma analizzando il suo script è emersa l'ispirazione per migliorare la logica di controllo, in particolare per la gestione delle scene basate sull'orario.
+
+Tuttavia, la versione originale non implementava un meccanismo di fallback. Questo significava che in caso di irraggiungibilità del Bridge Hue, l'interruttore fisico sarebbe diventato inutilizzabile.
+
+Questo fork unisce il meglio di entrambi gli approcci:
+* **Mantiene la logica avanzata di controllo delle scene** ispirata dal progetto di Laurent.
+* **Introduce una robusta logica di fallback** che garantisce il funzionamento dell'interruttore in ogni circostanza, rappresentando il miglioramento fondamentale di questa versione.
+
 ## Come Funziona
 
 La soluzione si basa su uno script eseguito direttamente a bordo del dispositivo Shelly, che implementa una logica di "fallback":
