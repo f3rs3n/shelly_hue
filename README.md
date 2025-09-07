@@ -26,6 +26,15 @@ La soluzione si basa su uno script eseguito direttamente a bordo del dispositivo
 1.  **Funzionamento Normale**: Alla pressione dell'interruttore, lo Shelly invia un comando API (webhook) al Bridge Philips Hue per accendere, spegnere o cambiare scena. Il relè fisico dello Shelly rimane sempre attivo, garantendo alimentazione costante alla lampadina Hue.
 2.  **Funzionamento in Fallback**: Se il comando API fallisce (perché il Bridge è irraggiungibile), lo script se ne accorge e commuta il relè fisico dello Shelly, comportandosi come un interruttore standard e garantendo il controllo della luce.
 
+## Caratteristiche di Stabilità e Affidabilità
+
+Oltre alla logica di base, gli script sono stati ottimizzati con diverse tecniche per garantire un funzionamento stabile e a prova di errore in condizioni reali:
+
+* **Logica di Debounce**: Previene l'esecuzione multipla dello script causata da "rimbalzi" elettrici dell'interruttore fisico, che potrebbero causare errori di chiamate multiple.
+* **Gestione dell'Avvio**: Lo script ignora in modo intelligente il primo evento di stato inviato dallo Shelly all'avvio, prevenendo attivazioni indesiderate.
+* **Specificità dell'Evento**: Il codice reagisce solo ed esclusivamente agli eventi generati dall'interruttore fisico (`input:0`), evitando feedback loop in cui il relè riattiva sé stesso all'infinito.
+* **Compatibilità API**: La sintassi delle chiamate di rete (`HTTP.Request`) è stata aggiornata per essere compatibile con le versioni più recenti del firmware Shelly.
+
 ## Descrizione degli Script
 
 In questa repository trovi due versioni dello script, da usare alternativamente.
