@@ -76,10 +76,10 @@ In questa repository trovi due versioni dello script, da usare alternativamente.
 
 1.  **Installazione Fisica**: Installa lo Shelly dietro l'interruttore secondo lo schema standard (L/N per alimentazione, O per l'uscita alla lampadina, SW per l'ingresso dall'interruttore).
 2.  **Impostazioni Iniziali**:
-    * Accedi all'interfaccia web dello Shelly.
-    * Vai su **Settings > Input/Output Settings > `switch:0`**.
-    * Imposta **Input Mode** su `Switch`.
-    * Imposta **Power on default** su `On` (fondamentale!).
+    * Accedi all'interfaccia web dello Shelly e vai su **Input/Output settings**.
+    * In **Select input mode for Input (0)**, scegli `Switch` (per un interruttore a levetta) o `Button` (per un pulsante).
+    * In **Set output type for Output (0)**, seleziona `Detached - Input is separated/not changing state of the output/relay`. Questo è cruciale per separare l'azione dell'interruttore dal relè, lasciando il controllo completo allo script.
+    * In **Action on power on for Output (0)**, seleziona `Turn ON`. Questo garantisce che dopo un blackout la lampadina Hue riceva corrente.
 3.  **Caricamento dello Script**:
     * Vai alla sezione **Scripts**.
     * Crea un nuovo script.
