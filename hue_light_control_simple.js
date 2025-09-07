@@ -1,59 +1,65 @@
-// --- HUE CONTROL SIMPLE ---
-// Script per Shelly Gen3/Plus
-// Esegue un semplice toggle On/Off per un gruppo di luci Philips Hue.
-// Include una logica di fallback per commutare il relè fisico se il Bridge Hue non è raggiungibile.
-//
-// OBIETTIVO: Massima affidabilità.
-
-// --- CONFIGURAZIONE: Modifica queste righe con i tuoi dati ---
+// --- CONFIGURAZIONE: Modifica queste variabili ---
 let CONFIG = {
-  hueBridgeIP: "192.168.1.55",              // <-- INSERISCI L'IP DEL TUO BRIDGE HUE
-  hueUsername: "xxxxxxxxxxxxxxxxxxxxxxxxxx", // <-- INSERISCI IL TUO USERNAME API
+  hueBridgeIP: "192.168.1.55",              // <-- INSERISCI L'IP DEL TUO BRIDGE
+  hueUsername: "COPIA_E_INCOLLA_IL_TUO_LUNGO_USERNAME_QUI", // <-- INSERISCI IL TUO USERNAME API
   groupId: "1",                             // <-- INSERISCI L'ID DEL GRUPPO DI LUCI
-  timeout: 1.5,                             // Secondi di attesa prima di attivare il fallback
+  timeout: 1.5,                             // Timeout in secondi prima di attivare il fallback
+  debounce_ms: 500                          // Millisecondi per ignorare pressioni multiple
 };
 
-// Variabile per tenere traccia dello stato desiderato della luce.
-// NOTA: Questo stato potrebbe non essere sincronizzato con lo stato reale se la luce
-// viene controllata da altri mezzi (app, assistenti vocali). Per un uso base va bene.
-let isLightOn = false; 
+// Variabile per tenere traccia dello stato della luce (presunto)
+let isLightOn = true; 
+// Variabili per il debounce e l'inizializzazione
+let lastToggleTime = 0;
+let scriptInitialized = false;
 
 // Funzione che viene eseguita quando l'interruttore cambia stato
 Shelly.addEventHandler(function(event) {
-  // Esegui solo se l'evento proviene dall'interruttore corretto (id:0)
-  // e se è un evento di tipo "toggle" (cambio di stato)
-  if (event.info.id !== 0 || event.info.event !== "toggle") return;
+  // Esegui solo se l'evento proviene dal nostro interruttore fisico (component "input:0")
+  if (event.component !== "input:0") return;
   
-  console.log("Interruttore premuto, tento il controllo smart...");
+  // Ignora il primo evento che si verifica all'avvio dello script
+  if (!scriptInitialized) {
+    scriptInitialized = true;
+    console.log("Script inizializzato, ignoro il primo evento di stato.");
+    return;
+  }
+  
+  let now = Date.now();
+  // Logica di Debounce: se l'ultima azione è troppo recente, ignora questo evento
+  if (now - lastToggleTime < CONFIG.debounce_ms) {
+    console.log("Evento ignorato (debounce).");
+    return;
+  }
+  lastToggleTime = now;
+  
+  console.log("Interruttore premuto, tento il controllo smart via API...");
 
-  // Inverte lo stato desiderato
+  // Determina se accendere o spegnere
   isLightOn = !isLightOn;
   let body = { "on": isLightOn };
 
-  // Costruisce l'URL per la chiamata API
+  // Costruisci l'URL per la chiamata API
   let urlToCall = "http://" + CONFIG.hueBridgeIP + "/api/" + CONFIG.hueUsername + "/groups/" + CONFIG.groupId + "/action";
 
-  // Esegue la chiamata HTTP al Bridge
+  // Esegui la chiamata HTTP al Bridge
   Shelly.call(
-    "HTTP.PUT", // Il metodo per cambiare stato su Hue è PUT
-    urlToCall,
-    body,
+    "HTTP.Request", // Metodo generico per le richieste HTTP
+    {
+      method: "PUT", // Specifica il verbo HTTP qui
+      url: urlToCall,
+      body: body,
+      timeout: CONFIG.timeout
+    },
     function (result, error_code, error_message) {
-      // Questa funzione (callback) gestisce la risposta del server
-      
-      // Controlla se la chiamata ha avuto successo
       if (error_code === 0 && result.code >= 200 && result.code < 300) {
         console.log("Successo! Comando inviato al Bridge Hue.");
-        // Non si fa nulla con il relè, il Bridge ha gestito la luce.
       } else {
-        // La chiamata è fallita (timeout o altro errore)
         console.log("Fallimento! Bridge non raggiungibile. Errore:", error_message);
         console.log("Eseguo il fallback: commuto il relè fisico.");
-        
-        // Esegue l'azione di fallback: commuta lo stato del relè locale
         Shelly.call("Switch.Toggle", { id: 0 });
       }
-    },
-    {timeout: CONFIG.timeout} // Passa l'oggetto di configurazione con il timeout
+    }
   );
 });
+
